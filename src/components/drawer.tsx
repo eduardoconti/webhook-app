@@ -38,9 +38,19 @@ const apiHost = process.env.REACT_APP_API_HOST as string;
 export default function ClippedDrawer() {
   const [requests, setRequests] = React.useState<Requests[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-  
+  console.log('init')
   React.useEffect(() => {
+    console.log('effect')
     const socket = io(apiHost);
+    socket.on("disconnect", (reason) => {
+      console.log(reason)
+      if (reason === "io server disconnect") {
+        // the disconnection was initiated by the server, you need to manually reconnect
+        console.log(socket.active); // false
+      }
+      // else the socket will automatically try to reconnect
+      console.log(socket.active); // true
+    });
     socket.on("connect", () => {
       console.log("connected " + webHookId);
       socket.on(webHookId, (content: any) => {
