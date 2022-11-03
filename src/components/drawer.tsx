@@ -36,22 +36,22 @@ const webHookId = uuidv4();
 const apiHost = process.env.REACT_APP_API_HOST as string;
 
 export default function ClippedDrawer() {
-  const socket = React.useMemo(() => io(apiHost), []);
   const [requests, setRequests] = React.useState<Requests[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-
+  
   React.useEffect(() => {
+    const socket = io(apiHost);
     socket.on("connect", () => {
       console.log("connected " + webHookId);
       socket.on(webHookId, (content: any) => {
         setRequests((req) => [content, ...req]);
       });
     });
-  }, [socket]);
+  }, []);
 
   const link = apiHost + "/webhook/" + webHookId;
   const card = requests.find((e) => e.id === selectedRequestId) ?? requests[0];
-  
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
