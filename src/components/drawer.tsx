@@ -44,7 +44,6 @@ export default function ClippedDrawer() {
     socket.on("connect", () => {
       console.log("connected " + webHookId);
       socket.on(webHookId, (content: any) => {
-        console.log(content);
         setRequests((req) => [content, ...req]);
       });
     });
@@ -52,8 +51,7 @@ export default function ClippedDrawer() {
 
   const link = apiHost + "/webhook/" + webHookId;
   const card = requests.find((e) => e.id === selectedRequestId) ?? requests[0];
-  console.log(card);
-
+  
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
