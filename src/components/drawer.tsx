@@ -48,8 +48,7 @@ export default function ClippedDrawer() {
         // the disconnection was initiated by the server, you need to manually reconnect
         console.log(socket.active); // false
       }
-      // else the socket will automatically try to reconnect
-      console.log(socket.active); // true
+      socket.off(webHookId)
     });
     socket.on("connect", () => {
       console.log("connected " + webHookId);
