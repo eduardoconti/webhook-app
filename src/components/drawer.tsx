@@ -42,7 +42,7 @@ export default function ClippedDrawer() {
     });
   }, [socket]);
 
-  const link = `${apiHost}/webhook/${webHookId}`;
+  const link = `${apiHost}/${webHookId}`;
   const requestEvent =
     requests.find((e) => e.id === selectedRequestId) ?? requests[0];
 
