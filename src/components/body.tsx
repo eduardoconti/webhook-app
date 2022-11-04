@@ -1,9 +1,9 @@
-import { Divider, Grid } from "@mui/material";
-import { Requests } from "./drawer";
+import { Grid } from "@mui/material";
+import { RequestEvent } from "./drawer";
 import JsonCard from "./json-card";
 
 export type BodyProps = {
-  requestEvent?: Requests;
+  requestEvent?: RequestEvent;
 };
 
 export default function Body({ requestEvent }: BodyProps) {
@@ -12,11 +12,8 @@ export default function Body({ requestEvent }: BodyProps) {
     <Grid container spacing={1}>
       {requestEvent ? (
         <>
-          <Grid item xs={5}>
+          <Grid item xs={6}>
             <JsonCard title="Body" json={requestEvent.body} />
-          </Grid>
-          <Grid item xs={1}>
-            <Divider orientation="vertical" />
           </Grid>
           <Grid item xs={6}>
             <JsonCard title="Headers" json={requestEvent.headers} />

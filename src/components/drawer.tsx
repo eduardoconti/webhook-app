@@ -1,23 +1,15 @@
-import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import React from "react";
-import {
-  Button,
-  CircularProgress,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Typography, Box, Drawer, AppBar, Toolbar } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import io from "socket.io-client";
-import CopyToClipboardButton from "./copy-button";
 import Body from "./body";
+import Url from "./url";
+import RequestEventReceived from "./request-event";
 
 const MAX_REQUESTS = 30;
 const drawerWidth = 240;
 
-export type Requests = {
+export type RequestEvent = {
   body: string;
   headers: string;
   time: string;
@@ -28,12 +20,12 @@ const webHookId = uuidv4();
 const apiHost = process.env.REACT_APP_API_HOST as string;
 
 export default function ClippedDrawer() {
-  const [requests, setRequests] = React.useState<Requests[]>([]);
+  const [requests, setRequests] = React.useState<RequestEvent[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-  const theme = useTheme();
+
+  const socket = React.useMemo(() => io(apiHost), []);
 
   React.useEffect(() => {
-    const socket = io(apiHost);
     socket.on("disconnect", (reason) => {
       console.log("io server disconnect. Reason: " + reason);
       socket.off(webHookId);
@@ -41,14 +33,14 @@ export default function ClippedDrawer() {
 
     socket.on("connect", () => {
       console.log("connected " + webHookId);
-      socket.on(webHookId, (content: any) => {
+      socket.on(webHookId, (content: RequestEvent) => {
         setRequests((req) => {
           if (req.length >= MAX_REQUESTS) return [content];
           return [content, ...req];
         });
       });
     });
-  }, []);
+  }, [socket]);
 
   const link = `${apiHost}/webhook/${webHookId}`;
   const requestEvent =
@@ -78,51 +70,17 @@ export default function ClippedDrawer() {
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: "auto" }} style={{ padding: theme.spacing(1) }}>
-          {requests.length === 0 ? (
-            <Typography align="center">
-              {"Waiting for first event... "}
-              <CircularProgress size={12} />
-            </Typography>
-          ) : null}
-
-          {requests.map(({ time, id }, i) => {
-            return (
-              <Button
-                variant="outlined"
-                fullWidth
-                style={{ height: 25, alignItems: "center", margin: 2 }}
-                onClick={() => {
-                  setSelectedRequestId(id);
-                }}
-                color={i === 0 ? "success" : "primary"}
-              >
-                {new Date(time).toLocaleString()}
-              </Button>
-            );
-          })}
-        </Box>
+        <RequestEventReceived
+          requests={requests}
+          onClick={(id) => {
+            setSelectedRequestId(id);
+          }}
+        />
       </Drawer>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Box sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />
-        <Typography
-          paragraph
-          align="center"
-          boxShadow={2}
-          color={theme.palette.grey[700]}
-        >
-          <Typography
-            component="span"
-            color={theme.palette.text.primary}
-            fontSize={12}
-          >
-            {"Use this URL > "}
-          </Typography>
-          {link}
-          <CopyToClipboardButton message={link} />
-        </Typography>
-
-       <Body requestEvent={requestEvent}/>
+        <Url url={link} />
+        <Body requestEvent={requestEvent} />
       </Box>
     </Box>
   );
