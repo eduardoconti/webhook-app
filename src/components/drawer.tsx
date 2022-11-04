@@ -1,24 +1,18 @@
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
-import CssBaseline from "@mui/material/CssBaseline";
 import Toolbar from "@mui/material/Toolbar";
 import React from "react";
 import {
   Button,
   CircularProgress,
-  Divider,
-  Grid,
-  IconButton,
-  Snackbar,
   Typography,
   useTheme,
 } from "@mui/material";
-import JsonFormatter from "react-json-formatter";
 import { v4 as uuidv4 } from "uuid";
 import io from "socket.io-client";
-import { lightGreen, orange } from "@mui/material/colors";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CopyToClipboardButton from "./copy-button";
+import Body from "./body";
 
 const MAX_REQUESTS = 30;
 const drawerWidth = 240;
@@ -37,11 +31,6 @@ export default function ClippedDrawer() {
   const [requests, setRequests] = React.useState<Requests[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
   const theme = useTheme();
-  const jsonStyle = {
-    propertyStyle: { color: orange[900] },
-    stringStyle: { color: theme.palette.primary.main },
-    numberStyle: { color: lightGreen[900] },
-  };
 
   React.useEffect(() => {
     const socket = io(apiHost);
@@ -61,13 +50,12 @@ export default function ClippedDrawer() {
     });
   }, []);
 
-  const link = apiHost + "/webhook/" + webHookId;
+  const link = `${apiHost}/webhook/${webHookId}`;
   const requestEvent =
     requests.find((e) => e.id === selectedRequestId) ?? requests[0];
 
   return (
     <Box sx={{ display: "flex" }}>
-      <CssBaseline />
       <AppBar
         position="fixed"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -103,7 +91,7 @@ export default function ClippedDrawer() {
               <Button
                 variant="outlined"
                 fullWidth
-                style={{ height: 25, alignItems: "center" }}
+                style={{ height: 25, alignItems: "center", margin: 2 }}
                 onClick={() => {
                   setSelectedRequestId(id);
                 }}
@@ -123,65 +111,19 @@ export default function ClippedDrawer() {
           boxShadow={2}
           color={theme.palette.grey[700]}
         >
-          <Typography component="span" color={theme.palette.text.primary} fontSize={12}>
+          <Typography
+            component="span"
+            color={theme.palette.text.primary}
+            fontSize={12}
+          >
             {"Use this URL > "}
           </Typography>
           {link}
           <CopyToClipboardButton message={link} />
         </Typography>
 
-        <Grid container spacing={1}>
-          {requestEvent ? (
-            <>
-              <Grid item xs={5}>
-                Body
-                <CopyToClipboardButton message={requestEvent.body} />
-                <JsonFormatter
-                  json={requestEvent.body}
-                  tabWith={4}
-                  jsonStyle={jsonStyle}
-                />
-              </Grid>
-              <Grid item xs={1}>
-                <Divider orientation="vertical" />
-              </Grid>
-              <Grid item xs={6}>
-                Headers
-                <CopyToClipboardButton message={requestEvent.headers} />
-                <JsonFormatter
-                  json={requestEvent.headers}
-                  tabWith={4}
-                  jsonStyle={jsonStyle}
-                />
-              </Grid>
-            </>
-          ) : null}
-        </Grid>
+       <Body requestEvent={requestEvent}/>
       </Box>
     </Box>
   );
 }
-
-const CopyToClipboardButton = (props: { message: string }) => {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClick = () => {
-    setOpen(true);
-    navigator.clipboard.writeText(props.message);
-  };
-
-  return (
-    <>
-      <IconButton onClick={handleClick} color="primary">
-        <ContentCopyIcon />
-      </IconButton>
-      <Snackbar
-        message="Copied to clipboard"
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        autoHideDuration={2000}
-        onClose={() => setOpen(false)}
-        open={open}
-      />
-    </>
-  );
-};
