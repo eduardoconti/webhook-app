@@ -9,9 +9,14 @@ import { RequestEvent } from "./drawer";
 
 export type RequestEventProps = {
   requests: RequestEvent[];
-  onClick: (id: string) => void
+  onClick: (id: string) => void;
+  selectedRequestId?: string;
 };
-export default function RequestEventReceived({ requests, onClick }: RequestEventProps) {
+export default function RequestEventReceived({
+  requests,
+  onClick,
+  selectedRequestId,
+}: RequestEventProps) {
   const theme = useTheme();
   return (
     <Box sx={{ overflow: "auto" }} style={{ padding: theme.spacing(1) }}>
@@ -25,11 +30,20 @@ export default function RequestEventReceived({ requests, onClick }: RequestEvent
       {requests.map(({ time, id }, i) => {
         return (
           <Button
+            key={i}
             variant="outlined"
             fullWidth
             style={{ height: 25, alignItems: "center", margin: 2 }}
-            onClick={ () => onClick(id)}
-            color={i === 0 ? "success" : "primary"}
+            onClick={() => onClick(id)}
+            color={
+              selectedRequestId
+                ? selectedRequestId === id
+                  ? "success"
+                  : "primary"
+                : i === 0
+                ? "success"
+                : "primary"
+            }
           >
             {new Date(time).toLocaleString()}
           </Button>

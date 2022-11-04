@@ -38,6 +38,7 @@ export default function ClippedDrawer() {
           if (req.length >= MAX_REQUESTS) return [content];
           return [content, ...req];
         });
+        setSelectedRequestId(content.id)
       });
     });
   }, [socket]);
@@ -75,6 +76,7 @@ export default function ClippedDrawer() {
           onClick={(id) => {
             setSelectedRequestId(id);
           }}
+          selectedRequestId={selectedRequestId}
         />
       </Drawer>
       <Box sx={{ flexGrow: 1, p: 1 }}>
