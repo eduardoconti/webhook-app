@@ -16,7 +16,7 @@ export default function JsonCard({ json, title }: JsonCardProps) {
       }}
     >
       {title}
-      <Divider />
+      <Divider style={{marginBottom: theme.spacing(1)}}/>
       <ReactJson
         src={JSON.parse(json)}
         name={false}
