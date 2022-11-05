@@ -27,7 +27,7 @@ export default function RequestEventReceived({
         </Typography>
       ) : null}
 
-      {requests.map(({ time, id }, i) => {
+      {requests.map(({ time, id, method }, i) => {
         return (
           <Button
             key={i}
@@ -45,7 +45,7 @@ export default function RequestEventReceived({
                 : "primary"
             }
           >
-            {new Date(time).toLocaleString()}
+            {`${new Date(time).toLocaleTimeString()} ${method}`}
           </Button>
         );
       })}

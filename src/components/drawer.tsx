@@ -14,6 +14,7 @@ export type RequestEvent = {
   headers: string;
   time: string;
   id: string;
+  method: string;
 };
 
 const webHookId = uuidv4();

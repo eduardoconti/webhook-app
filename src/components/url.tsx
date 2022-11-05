@@ -20,7 +20,7 @@ export default function Url({ url }: UrlProps) {
           color={theme.palette.text.primary}
           fontSize={12}
         >
-          {"Use this URL with method POST >> "}
+          {"Use this URL >> "}
         </Typography>
         {url}
         <CopyToClipboardButton message={url} />
