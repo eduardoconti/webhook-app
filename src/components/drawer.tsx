@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Box, Drawer, AppBar, Toolbar } from "@mui/material";
+import { Typography, Box, Drawer, AppBar, Toolbar, useTheme } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import io from "socket.io-client";
 import Body from "./body";
@@ -7,7 +7,6 @@ import Url from "./url";
 import RequestEventReceived from "./request-event";
 
 const MAX_REQUESTS = 30;
-const drawerWidth = 240;
 
 export type RequestEvent = {
   body: string;
@@ -23,7 +22,9 @@ const apiHost = process.env.REACT_APP_API_HOST as string;
 export default function ClippedDrawer() {
   const [requests, setRequests] = React.useState<RequestEvent[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-
+  const theme = useTheme()
+  const drawerWidth = window.innerWidth > theme.breakpoints.values.sm ? 220 : 160
+  
   const socket = React.useMemo(() => io(apiHost), []);
 
   React.useEffect(() => {
@@ -55,7 +56,7 @@ export default function ClippedDrawer() {
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="span">
             Webhook Simulator
           </Typography>
         </Toolbar>

@@ -10,20 +10,20 @@ export default function JsonCard({ json, title }: JsonCardProps) {
   return (
     <Box
       style={{
-        backgroundColor: theme.palette.grey[100],
+        boxShadow: theme.shadows[1],
         borderRadius: theme.shape.borderRadius,
         padding: theme.spacing(2),
+        fontSize: window.innerWidth > theme.breakpoints.values.sm ? '1rem' : '0.75rem'
       }}
     >
       {title}
-      <Divider style={{marginBottom: theme.spacing(1)}}/>
+      <Divider style={{ marginBottom: theme.spacing(1) }} />
       <ReactJson
         src={JSON.parse(json)}
         name={false}
         displayObjectSize={false}
         displayDataTypes={false}
-        onEdit={()=>{}}
-        
+        onEdit={() => {}}
       />
     </Box>
   );

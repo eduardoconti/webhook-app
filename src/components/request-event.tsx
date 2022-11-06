@@ -33,7 +33,12 @@ export default function RequestEventReceived({
             key={i}
             variant="outlined"
             fullWidth
-            style={{ height: 25, alignItems: "center", margin: 2 }}
+            style={{
+              height: 25,
+              alignItems: "center",
+              margin: 2,
+              boxShadow: theme.shadows[1],
+            }}
             onClick={() => onClick(id)}
             color={
               selectedRequestId
