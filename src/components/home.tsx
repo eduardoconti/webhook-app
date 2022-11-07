@@ -14,37 +14,45 @@ import Url from "./url";
 import RequestEventReceived from "./request-event";
 import AlertMessage from "./Alert";
 import { useAlertStore } from "../hooks/useAlert";
+import { RequestEventProps, useRequesEventStore } from "../hooks/useRequestEvent";
+import shallow from "zustand/shallow";
 
 const MAX_REQUESTS = 30;
-
-export type RequestEvent = {
-  body: string;
-  headers: string;
-  time: string;
-  id: string;
-  method: string;
-};
-
-const apiHost = process.env.REACT_APP_API_HOST as string;
+const HOST = process.env.REACT_APP_API_HOST as string;
 
 export default function Home() {
-  const [requests, setRequests] = React.useState<RequestEvent[]>([]);
-  const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
+  const { requests, addRequest, clear, selectedEventId, setSelectedEventId } =
+    useRequesEventStore(
+      (s) => ({
+        requests: s.requests,
+        addRequest: s.addRequest,
+        clear: s.clearRequests,
+        selectedEventId: s.selectedEventId,
+        setSelectedEventId: s.setSelectedEventId,
+      }),
+      shallow
+    );
   const [webHookId, setWebHookId] = React.useState<string | undefined>(
     undefined
   );
-  const setProps = useAlertStore((s)=>s.setProps)
+  const setProps = useAlertStore((s) => s.setProps);
   const theme = useTheme();
   const drawerWidth =
     window.innerWidth > theme.breakpoints.values.sm ? 220 : 160;
 
   const socket = React.useMemo(
     () =>
-      io(apiHost, {
+      io(HOST, {
         reconnectionDelay: 5000,
       }),
     []
   );
+
+  React.useEffect(() => {
+    if (requests.length > MAX_REQUESTS) {
+      return clear();
+    }
+  }, [clear, requests.length]);
 
   React.useEffect(() => {
     socket.on("connect_error", (e: any) => {
@@ -55,31 +63,30 @@ export default function Home() {
         isOpen: true,
       });
     });
-    
+
     socket.on("disconnect", (reason) => {
       console.log("io server disconnect. Reason: " + reason);
       socket.off("webhook");
-      setRequests([]);
+      clear();
     });
+  }, [clear, setProps, socket]);
 
-    socket.on("connect", async () => {
+  React.useEffect(() => {
+    socket.on("connect", () => {
       console.log("connected " + socket.id);
-      const uuid = await uuidv4();
-      await socket.emit("register", { socketId: socket.id, webHookId: uuid });
-      socket.on("webhook", (content: RequestEvent) => {
-        setRequests((req) => {
-          if (req.length >= MAX_REQUESTS) return [content];
-          return [content, ...req];
-        });
-        setSelectedRequestId(content.id);
+      const uuid = uuidv4();
+      socket.emit("register", { socketId: socket.id, webHookId: uuid });
+      socket.on("webhook", (content: RequestEventProps) => {
+        addRequest(content);
+        setSelectedEventId(content.id);
       });
       setWebHookId(uuid);
     });
-  }, [setProps, socket]);
+  }, [addRequest, setSelectedEventId, socket]);
 
-  const link = `${apiHost}/${webHookId}`;
+  const link = `${HOST}/${webHookId}`;
   const requestEvent =
-    requests.find((e) => e.id === selectedRequestId) ?? requests[0];
+    requests.find((e) => e.id === selectedEventId) ?? requests[0];
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -105,13 +112,7 @@ export default function Home() {
         }}
       >
         <Toolbar />
-        <RequestEventReceived
-          requests={requests}
-          onClick={(id) => {
-            setSelectedRequestId(id);
-          }}
-          selectedRequestId={selectedRequestId}
-        />
+        <RequestEventReceived />
       </Drawer>
       <Box sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />

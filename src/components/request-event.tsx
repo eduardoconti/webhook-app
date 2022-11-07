@@ -5,19 +5,20 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { RequestEvent } from "./home";
+import shallow from "zustand/shallow";
+import { useRequesEventStore } from "../hooks/useRequestEvent";
 
-export type RequestEventProps = {
-  requests: RequestEvent[];
-  onClick: (id: string) => void;
-  selectedRequestId?: string;
-};
-export default function RequestEventReceived({
-  requests,
-  onClick,
-  selectedRequestId,
-}: RequestEventProps) {
+
+export default function RequestEventReceived() {
   const theme = useTheme();
+  const { requests, setSelectedEventId, selectedEventId } = useRequesEventStore(
+    (s) => ({
+      requests: s.requests,
+      setSelectedEventId: s.setSelectedEventId,
+      selectedEventId: s.selectedEventId,
+    }),
+    shallow
+  );
   return (
     <Box sx={{ overflow: "auto" }} style={{ padding: theme.spacing(1) }}>
       {requests.length === 0 ? (
@@ -39,10 +40,10 @@ export default function RequestEventReceived({
               margin: 2,
               boxShadow: theme.shadows[1],
             }}
-            onClick={() => onClick(id)}
+            onClick={() => setSelectedEventId(id)}
             color={
-              selectedRequestId
-                ? selectedRequestId === id
+              selectedEventId
+                ? selectedEventId === id
                   ? "success"
                   : "primary"
                 : i === 0
