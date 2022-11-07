@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography, Box, Drawer, AppBar, Toolbar, useTheme } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import Body from "./body";
 import Url from "./url";
 import RequestEventReceived from "./request-event";
@@ -30,12 +30,13 @@ export default function ClippedDrawer() {
   React.useEffect(() => {
     socket.on("disconnect", (reason) => {
       console.log("io server disconnect. Reason: " + reason);
-      socket.off(webHookId);
+      socket.off('webhook');
     });
 
     socket.on("connect", () => {
-      console.log("connected " + webHookId);
-      socket.on(webHookId, (content: RequestEvent) => {
+      console.log("connected " + socket.id);
+      socket.emit('register', {socketId: socket.id, webHookId: webHookId});
+      socket.on('webhook', (content: RequestEvent) => {
         setRequests((req) => {
           if (req.length >= MAX_REQUESTS) return [content];
           return [content, ...req];
