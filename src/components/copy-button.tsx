@@ -4,6 +4,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 export type CopyButtonProps = {
   message: string;
+  disabled: boolean
 };
 export default function CopyToClipboardButton(props: CopyButtonProps) {
   const [open, setOpen] = React.useState(false);
@@ -15,7 +16,7 @@ export default function CopyToClipboardButton(props: CopyButtonProps) {
 
   return (
     <>
-      <IconButton onClick={handleClick} color="primary">
+      <IconButton onClick={handleClick} color="primary" disabled={props.disabled}>
         <ContentCopyIcon />
       </IconButton>
       <Snackbar

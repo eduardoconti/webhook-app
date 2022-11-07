@@ -3,9 +3,10 @@ import CopyToClipboardButton from "./copy-button";
 
 export type UrlProps = {
   url: string;
+  disabled: boolean
 };
 
-export default function Url({ url }: UrlProps) {
+export default function Url({ url, disabled }: UrlProps) {
   const theme = useTheme();
   return (
     <Box
@@ -23,7 +24,7 @@ export default function Url({ url }: UrlProps) {
         component="div"
       >
         {url}
-        <CopyToClipboardButton message={url} />
+        <CopyToClipboardButton message={url} disabled={disabled}/>
       </Typography>
     </Box>
   );

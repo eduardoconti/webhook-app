@@ -1,7 +1,14 @@
 import React from "react";
-import { Typography, Box, Drawer, AppBar, Toolbar, useTheme } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Drawer,
+  AppBar,
+  Toolbar,
+  useTheme,
+} from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
-import io, { Socket } from "socket.io-client";
+import io from "socket.io-client";
 import Body from "./body";
 import Url from "./url";
 import RequestEventReceived from "./request-event";
@@ -16,34 +23,39 @@ export type RequestEvent = {
   method: string;
 };
 
-const webHookId = uuidv4();
 const apiHost = process.env.REACT_APP_API_HOST as string;
 
 export default function ClippedDrawer() {
   const [requests, setRequests] = React.useState<RequestEvent[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-  const theme = useTheme()
-  const drawerWidth = window.innerWidth > theme.breakpoints.values.sm ? 220 : 160
-  
+  const [webHookId, setWebHookId] = React.useState<string|undefined>(undefined);
+  const theme = useTheme();
+  const drawerWidth =
+    window.innerWidth > theme.breakpoints.values.sm ? 220 : 160;
+
   const socket = React.useMemo(() => io(apiHost), []);
 
   React.useEffect(() => {
     socket.on("disconnect", (reason) => {
       console.log("io server disconnect. Reason: " + reason);
-      socket.off('webhook');
+      socket.off("webhook");
+      setRequests([]);
     });
 
-    socket.on("connect", () => {
+    socket.on("connect", async () => {
       console.log("connected " + socket.id);
-      socket.emit('register', {socketId: socket.id, webHookId: webHookId});
-      socket.on('webhook', (content: RequestEvent) => {
+      const uuid = await uuidv4();
+      await socket.emit("register", { socketId: socket.id, webHookId: uuid });
+      socket.on("webhook", (content: RequestEvent) => {
         setRequests((req) => {
           if (req.length >= MAX_REQUESTS) return [content];
           return [content, ...req];
         });
-        setSelectedRequestId(content.id)
+        setSelectedRequestId(content.id);
       });
+      setWebHookId(uuid);
     });
+    
   }, [socket]);
 
   const link = `${apiHost}/${webHookId}`;
@@ -84,7 +96,7 @@ export default function ClippedDrawer() {
       </Drawer>
       <Box sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />
-        <Url url={link} />
+        <Url url={link} disabled={webHookId ? false : true}/>
         <Body requestEvent={requestEvent} />
       </Box>
     </Box>
