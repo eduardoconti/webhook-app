@@ -12,6 +12,8 @@ import io from "socket.io-client";
 import Body from "./body";
 import Url from "./url";
 import RequestEventReceived from "./request-event";
+import AlertMessage from "./Alert";
+import { useAlertStore } from "../hooks/useAlert";
 
 const MAX_REQUESTS = 30;
 
@@ -25,17 +27,35 @@ export type RequestEvent = {
 
 const apiHost = process.env.REACT_APP_API_HOST as string;
 
-export default function ClippedDrawer() {
+export default function Home() {
   const [requests, setRequests] = React.useState<RequestEvent[]>([]);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string>("");
-  const [webHookId, setWebHookId] = React.useState<string|undefined>(undefined);
+  const [webHookId, setWebHookId] = React.useState<string | undefined>(
+    undefined
+  );
+  const setProps = useAlertStore((s)=>s.setProps)
   const theme = useTheme();
   const drawerWidth =
     window.innerWidth > theme.breakpoints.values.sm ? 220 : 160;
 
-  const socket = React.useMemo(() => io(apiHost), []);
+  const socket = React.useMemo(
+    () =>
+      io(apiHost, {
+        reconnectionDelay: 5000,
+      }),
+    []
+  );
 
   React.useEffect(() => {
+    socket.on("connect_error", (e: any) => {
+      setProps({
+        message: `Failed to connect websocket! ${e.message}`,
+        color: "error",
+        severity: "error",
+        isOpen: true,
+      });
+    });
+    
     socket.on("disconnect", (reason) => {
       console.log("io server disconnect. Reason: " + reason);
       socket.off("webhook");
@@ -55,8 +75,7 @@ export default function ClippedDrawer() {
       });
       setWebHookId(uuid);
     });
-    
-  }, [socket]);
+  }, [setProps, socket]);
 
   const link = `${apiHost}/${webHookId}`;
   const requestEvent =
@@ -96,9 +115,10 @@ export default function ClippedDrawer() {
       </Drawer>
       <Box sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />
-        <Url url={link} disabled={webHookId ? false : true}/>
+        <Url url={link} disabled={webHookId ? false : true} />
         <Body requestEvent={requestEvent} />
       </Box>
+      <AlertMessage />
     </Box>
   );
 }

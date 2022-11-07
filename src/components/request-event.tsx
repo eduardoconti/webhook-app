@@ -5,7 +5,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { RequestEvent } from "./drawer";
+import { RequestEvent } from "./home";
 
 export type RequestEventProps = {
   requests: RequestEvent[];

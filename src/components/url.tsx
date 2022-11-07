@@ -1,9 +1,9 @@
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import CopyToClipboardButton from "./copy-button";
 
 export type UrlProps = {
   url: string;
-  disabled: boolean
+  disabled: boolean;
 };
 
 export default function Url({ url, disabled }: UrlProps) {
@@ -23,8 +23,17 @@ export default function Url({ url, disabled }: UrlProps) {
         color={theme.palette.grey[700]}
         component="div"
       >
-        {url}
-        <CopyToClipboardButton message={url} disabled={disabled}/>
+        {disabled ? (
+          <>
+            {"Generating link... "}
+            <CircularProgress size={12} />
+          </>
+        ) : (
+          <>
+            {url}
+            <CopyToClipboardButton message={url} disabled={disabled} />
+          </>
+        )}
       </Typography>
     </Box>
   );

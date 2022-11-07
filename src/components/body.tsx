@@ -1,5 +1,5 @@
 import { Grid } from "@mui/material";
-import { RequestEvent } from "./drawer";
+import { RequestEvent } from "./home";
 import JsonCard from "./json-card";
 
 export type BodyProps = {

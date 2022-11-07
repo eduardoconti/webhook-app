@@ -1,11 +1,11 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-import ClippedDrawer from "./components/drawer";
+import Home from "./components/home";
 const theme = createTheme({});
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ClippedDrawer />
+      <Home />
     </ThemeProvider>
   );
 }
