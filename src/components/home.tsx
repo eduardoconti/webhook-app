@@ -14,8 +14,12 @@ import Url from "./url";
 import RequestEventReceived from "./request-event";
 import AlertMessage from "./Alert";
 import { useAlertStore } from "../hooks/useAlert";
-import { RequestEventProps, useRequesEventStore } from "../hooks/useRequestEvent";
+import {
+  RequestEventProps,
+  useRequesEventStore,
+} from "../hooks/useRequestEvent";
 import shallow from "zustand/shallow";
+import { useWebhookIdStore } from "../hooks/useWebhookId";
 
 const MAX_REQUESTS = 30;
 const HOST = process.env.REACT_APP_API_HOST as string;
@@ -32,13 +36,13 @@ export default function Home() {
       }),
       shallow
     );
-  const [webHookId, setWebHookId] = React.useState<string | undefined>(
-    undefined
-  );
+
   const setProps = useAlertStore((s) => s.setProps);
-  const theme = useTheme();
-  const drawerWidth =
-    window.innerWidth > theme.breakpoints.values.sm ? 220 : 160;
+
+  const { webHookId, setWebHookId } = useWebhookIdStore(
+    (s) => ({ webHookId: s.webhookId, setWebHookId: s.setWebhookId }),
+    shallow
+  );
 
   const socket = React.useMemo(
     () =>
@@ -47,6 +51,8 @@ export default function Home() {
       }),
     []
   );
+
+  const uuid = React.useMemo(() => uuidv4(), []);
 
   React.useEffect(() => {
     if (requests.length > MAX_REQUESTS) {
@@ -62,19 +68,26 @@ export default function Home() {
         severity: "error",
         isOpen: true,
       });
+      setWebHookId()
     });
 
     socket.on("disconnect", (reason) => {
-      console.log("io server disconnect. Reason: " + reason);
+      setProps({
+        message: `io server disconnect. Reason: ${reason}`,
+        color: "error",
+        severity: "error",
+        isOpen: true,
+      });
       socket.off("webhook");
+      setWebHookId()
       clear();
     });
-  }, [clear, setProps, socket]);
+  }, [clear, setProps, setWebHookId, socket]);
 
   React.useEffect(() => {
     socket.on("connect", () => {
       console.log("connected " + socket.id);
-      const uuid = uuidv4();
+
       socket.emit("register", { socketId: socket.id, webHookId: uuid });
       socket.on("webhook", (content: RequestEventProps) => {
         addRequest(content);
@@ -82,7 +95,7 @@ export default function Home() {
       });
       setWebHookId(uuid);
     });
-  }, [addRequest, setSelectedEventId, socket]);
+  }, [addRequest, setSelectedEventId, setWebHookId, socket, uuid]);
 
   const link = `${HOST}/${webHookId}`;
   const requestEvent =
@@ -90,30 +103,7 @@ export default function Home() {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      >
-        <Toolbar>
-          <Typography variant="h6" noWrap component="span">
-            Webhook Simulator
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
-      >
-        <Toolbar />
-        <RequestEventReceived />
-      </Drawer>
+      <Layout />
       <Box sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />
         <Url url={link} disabled={webHookId ? false : true} />
@@ -122,4 +112,41 @@ export default function Home() {
       <AlertMessage />
     </Box>
   );
+
+  function Layout() {
+    const theme = useTheme();
+    const drawerWidth =
+      window.innerWidth > theme.breakpoints.values.sm ? 220 : 160;
+
+    return React.useMemo(() => {
+      return (
+        <>
+          <AppBar
+            position="fixed"
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          >
+            <Toolbar>
+              <Typography variant="h6" noWrap component="span">
+                Webhook Simulator
+              </Typography>
+            </Toolbar>
+          </AppBar>
+          <Drawer
+            variant="permanent"
+            sx={{
+              width: drawerWidth,
+              flexShrink: 0,
+              [`& .MuiDrawer-paper`]: {
+                width: drawerWidth,
+                boxSizing: "border-box",
+              },
+            }}
+          >
+            <Toolbar />
+            <RequestEventReceived />
+          </Drawer>
+        </>
+      );
+    }, [drawerWidth]);
+  }
 }
